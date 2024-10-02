@@ -9,10 +9,10 @@ ARGS ?=
 DOCKER_IT ?= -it
 
 # Catkin workspace on the local machine where build artifacts will be stored
-CATKIN_WS ?= "${HOME}/catkin_ws"
+CATKIN_WS ?= "${HOME}/courses/MEEN696-project/catkin_ws"
 
 # Location of the git repository on the local machine (mounted for source)
-GIT ?= "${HOME}/ros_repos/"
+GIT ?= "${HOME}/courses/MEEN696-project/ros_repos/"
 
 DOCKER_IMAGE ?= dmce
 
