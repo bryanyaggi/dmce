@@ -13,8 +13,19 @@
 		<param name="plannerType" type="string" value="$(arg plannerType)" />
 	</node>
 
+  <!-- Extra nodes for mobile pigeon -->
+  <remap from="/groundStation/RobotPosition" to="/robot0/RobotPosition" />
+	<node pkg="dmce_nodes" type="nodeMain" name="NavigationServer" output="screen" args="0 NavigationServer" />
+	<node pkg="dmce_nodes" type="nodeMain" name="PathfindingServer" output="screen" args="0 PathfindingServer" />
+	<node pkg="dmce_nodes" type="nodeMain" name="PlannerServer" output="screen" args="0 PlannerServer" >
+    <param name="plannerType" type="string" value="random" />
+  </node>
+	<node pkg="dmce_nodes" type="nodeMain" name="TransformServer" output="screen" args="0 TransformServer" />
+
   <!-- Docked pigeon node -->
+  <!--
   <node pkg="dmce_nodes" type="dockedPigeon" name="pigeon" output="screen" />
+  -->
 
 	<node pkg="grid_map_visualization" type="grid_map_visualization" name="MapViz" output="screen">
 		<rosparam>
