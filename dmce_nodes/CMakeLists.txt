@@ -123,6 +123,7 @@ add_dependencies(${PROJECT_NAME}_lib ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catki
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_nodeMain src/nodeMain.cpp)
 add_executable(${PROJECT_NAME}_clock src/clock.cpp)
+add_executable(${PROJECT_NAME}_dockedPigeon src/dockedPigeon.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -130,21 +131,24 @@ add_executable(${PROJECT_NAME}_clock src/clock.cpp)
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 set_target_properties(${PROJECT_NAME}_nodeMain PROPERTIES OUTPUT_NAME nodeMain PREFIX "")
 set_target_properties(${PROJECT_NAME}_clock PROPERTIES OUTPUT_NAME clock PREFIX "")
+set_target_properties(${PROJECT_NAME}_dockedPigeon PROPERTIES OUTPUT_NAME dockedPigeon PREFIX "")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(${PROJECT_NAME}_nodeMain ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME}_clock ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_dockedPigeon ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_nodeMain ${PROJECT_NAME}_lib ${catkin_LIBRARIES} ${OMPL_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_clock ${PROJECT_NAME}_lib ${catkin_LIBRARIES})
-
+target_link_libraries(${PROJECT_NAME}_dockedPigeon ${PROJECT_NAME}_lib ${catkin_LIBRARIES})
 
 add_custom_target(${PROJECT_NAME})
 add_dependencies(${PROJECT_NAME}
   ${PROJECT_NAME}_lib
   ${PROJECT_NAME}_clock
   ${PROJECT_NAME}_nodeMain
+  ${PROJECT_NAME}_dockedPigeon
 )
 
