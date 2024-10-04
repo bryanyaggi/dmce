@@ -12,7 +12,12 @@ namespace dmce {
 		getRequiredParam("/robot/maxPlanAge", maxPlanAge_);
 		getRequiredParam("/robot/maxPathfindingFailures", maxPathfindingFailures_);
 
-		inflatedTruthMap_ = fetchGroundTruthMap_(timeout);
+    if (robotId == 0)
+    {
+      getRequiredParam("/pigeon/speed", robotSpeed_);
+    }
+
+    inflatedTruthMap_ = fetchGroundTruthMap_(timeout);
 		inflatedTruthMap_.inflateObstacles(robotDiameter_ * .75);
 
 		globalPlanClient_ = nodeHandle_.serviceClient<dmce_msgs::GetPlan>(

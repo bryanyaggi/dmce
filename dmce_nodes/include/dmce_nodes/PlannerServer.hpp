@@ -4,6 +4,7 @@
 #include "dmce_core/FrontierPlanner.hpp"
 #include "dmce_core/ClusteredFrontierPlanner.hpp"
 #include "dmce_core/ExternalPlanner.hpp"
+#include "dmce_core/PigeonPlanner.hpp"
 
 #include "dmce_mcplanner/MCTSPlanner.hpp"
 #include "dmce_mcplanner/DMCTSPlanner.hpp"

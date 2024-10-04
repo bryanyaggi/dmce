@@ -12,7 +12,12 @@ namespace dmce {
 		getRequiredParam("/robot/speed", robotSpeed_);
 		getRequiredParam("/robot/navigationCutoff", navigationCutoff_);
 
-		positionSubscriber_ = nodeHandle_.subscribe(
+    if (robotId == 0)
+    {
+		  getRequiredParam("/pigeon/speed", robotSpeed_);
+    }
+
+    positionSubscriber_ = nodeHandle_.subscribe(
 			"RobotPosition", 1, &PathfindingServer::positionCallback_, this);
 
 		mapSubscriber_ = nodeHandle_.subscribe(

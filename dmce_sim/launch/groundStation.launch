@@ -18,7 +18,7 @@
 	<node pkg="dmce_nodes" type="nodeMain" name="NavigationServer" output="screen" args="0 NavigationServer" />
 	<node pkg="dmce_nodes" type="nodeMain" name="PathfindingServer" output="screen" args="0 PathfindingServer" />
 	<node pkg="dmce_nodes" type="nodeMain" name="PlannerServer" output="screen" args="0 PlannerServer" >
-    <param name="plannerType" type="string" value="random" />
+    <param name="plannerType" type="string" value="pigeon" />
   </node>
 	<node pkg="dmce_nodes" type="nodeMain" name="TransformServer" output="screen" args="0 TransformServer" />
 

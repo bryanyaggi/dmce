@@ -34,12 +34,14 @@ namespace dmce {
 			return;
 
 		// Publish marker for gound-station
+    /*
 		visualization_msgs::Marker groundStationMarker = utils::getDefaultMarker_(robotDiameter_);
 		groundStationMarker.id = 0;
 		groundStationMarker.pose.position.x = robotPositions_[0].x();
 		groundStationMarker.pose.position.y = robotPositions_[0].y();
 		groundStationMarker.type = visualization_msgs::Marker::CUBE;
 		markerPublisher_.publish(groundStationMarker);
+    */
 
 		// Publish lines to represent connectivity
 		visualization_msgs::Marker linesMarker = utils::getDefaultMarker_(robotDiameter_);

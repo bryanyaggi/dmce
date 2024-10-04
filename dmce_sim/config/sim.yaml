@@ -44,6 +44,9 @@ robot:
     length_y: 80 # [m]
     resolution: 0.5 # [m]
 
+pigeon:
+  speed: 5    # [m/s]
+
 mcts:
   reuseBranches: $(arg reuseBranches) # [-] Whether to keep branches from previous search trees
   rolloutDepth: $(arg rolloutDepth) # [-] Number of random actions simulated in each rollout

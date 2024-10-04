@@ -25,7 +25,9 @@ namespace dmce {
 			planner_ = std::make_unique<DMCTSPlanner>(robotDiameter_, robotId_, getMCParams());
 		} else if (plannerType == "rrt" || plannerType == "mmpf") {
 			planner_ = std::make_unique<ExternalPlanner>(robotDiameter_, robotId_, plannerType);
-		} else {
+		} else if (plannerType == "pigeon") {
+			planner_ = std::make_unique<PigeonPlanner>(robotDiameter_);
+    } else {
 			logError("", "Unrecognised planner type: '%s'", plannerType.c_str());
 			ros::shutdown();
 		}
