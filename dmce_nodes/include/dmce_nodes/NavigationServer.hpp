@@ -6,6 +6,7 @@
 #include "dmce_msgs/NavigationFailureSignal.h"
 #include "dmce_msgs/GetPlan.h"
 #include "dmce_msgs/PathfindingAction.h"
+#include "std_srvs/Empty.h"
 
 #include "dmce_sim/GroundTruthMap.hpp"
 #include "dmce_sim/Navigation.hpp"
@@ -33,7 +34,8 @@ namespace dmce {
 		virtual void update_(ros::Duration timeStep) override;
 
 	private:
-		ros::ServiceClient globalPlanClient_;
+    ros::ServiceServer stopServer_;
+    ros::ServiceClient globalPlanClient_;
 		ros::Publisher positionPublisher_;
 		ros::Publisher pathPublisher_;
 		ros::Publisher globalPlanPublisher_;
@@ -54,6 +56,7 @@ namespace dmce {
 		bool signalFailure_ = false;
 		int maxPathfindingFailures_;
 		unsigned int consecutivePathfindingFailures_ = 0;
+    bool stopFlag_ = false;
 
 		void navigationMapCallback_(const grid_map_msgs::GridMap& mapMsg);
 
@@ -74,5 +77,7 @@ namespace dmce {
 		void checkAbortConditions_(const ros::Duration& timeStep);
 
 		bool navigateToGoal_(const ros::Duration& timeStep);
+
+    bool stopCallback_(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 	};
 }

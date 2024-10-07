@@ -20,6 +20,8 @@ namespace dmce {
     inflatedTruthMap_ = fetchGroundTruthMap_(timeout);
 		inflatedTruthMap_.inflateObstacles(robotDiameter_ * .75);
 
+    stopServer_ = nodeHandle_.advertiseService("stop", &NavigationServer::stopCallback_, this);
+
 		globalPlanClient_ = nodeHandle_.serviceClient<dmce_msgs::GetPlan>(
 			"GlobalPlannerService"
 		);
@@ -99,10 +101,15 @@ namespace dmce {
 
 	void NavigationServer::checkAbortConditions_(const ros::Duration& timeStep) {
 		currentPlanAge_ += timeStep.toSec();
+    bool stop = stopFlag_;
 		bool planTimedOut = currentPlanAge_ > maxPlanAge_;
 		bool goalUnreachable = consecutivePathfindingFailures_ > maxPathfindingFailures_;
 
-		if (planTimedOut)
+    if (stop) {
+      logInfo("update_", "Stop flag set. Resetting.");
+      stopFlag_ = false; // reset flag
+    }
+    else if (planTimedOut)
 			logWarn("update_", "Plan timed out after %.2fs. Resetting.", currentPlanAge_);
 		else if (goalUnreachable) {
 			logError("update_", "Stuck on unreachable goal! Resetting.");
@@ -112,7 +119,7 @@ namespace dmce {
 			failurePublisher_.publish(failureMsg);
 		}
 
-		if (planTimedOut || goalUnreachable) {
+		if (stop || planTimedOut || goalUnreachable) {
 			navigation_->resetPlan();
 			currentPlanAge_ = 0;
 		}
@@ -237,5 +244,11 @@ namespace dmce {
 			ActionClient_t::SimpleActiveCallback(),
 			boost::bind(&NavigationServer::pathCallback_, this, _1));
 	}
+
+  bool NavigationServer::stopCallback_(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  {
+    stopFlag_ = true;
+    return true;
+  }
 }
 
