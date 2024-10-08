@@ -7,6 +7,7 @@
 #include "dmce_msgs/GetPlan.h"
 #include "dmce_msgs/PathfindingAction.h"
 #include "std_srvs/Empty.h"
+#include "std_msgs/Empty.h"
 
 #include "dmce_sim/GroundTruthMap.hpp"
 #include "dmce_sim/Navigation.hpp"
@@ -41,6 +42,7 @@ namespace dmce {
 		ros::Publisher globalPlanPublisher_;
 		ros::Publisher failurePublisher_;
 		ros::Subscriber inflatedMapSubscriber_;
+    ros::Subscriber stopSubscriber_;
 
 		using ActionClient_t = actionlib::SimpleActionClient<dmce_msgs::PathfindingAction>;
 		ActionClient_t actionClient_;
@@ -56,7 +58,7 @@ namespace dmce {
 		bool signalFailure_ = false;
 		int maxPathfindingFailures_;
 		unsigned int consecutivePathfindingFailures_ = 0;
-    bool stopFlag_ = false;
+    bool stopRequest_ = false;
 
 		void navigationMapCallback_(const grid_map_msgs::GridMap& mapMsg);
 
@@ -78,6 +80,8 @@ namespace dmce {
 
 		bool navigateToGoal_(const ros::Duration& timeStep);
 
-    bool stopCallback_(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+    bool stopServiceCallback_(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+    
+    void stopCallback_(const std_msgs::EmptyConstPtr &msg);
 	};
 }

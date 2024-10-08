@@ -20,7 +20,7 @@ namespace dmce {
     inflatedTruthMap_ = fetchGroundTruthMap_(timeout);
 		inflatedTruthMap_.inflateObstacles(robotDiameter_ * .75);
 
-    stopServer_ = nodeHandle_.advertiseService("stop", &NavigationServer::stopCallback_, this);
+    stopServer_ = nodeHandle_.advertiseService("stop", &NavigationServer::stopServiceCallback_, this);
 
 		globalPlanClient_ = nodeHandle_.serviceClient<dmce_msgs::GetPlan>(
 			"GlobalPlannerService"
@@ -48,6 +48,8 @@ namespace dmce {
 			this
 		);
 
+    stopSubscriber_ = nodeHandle_.subscribe("stop", 1, &NavigationServer::stopCallback_, this);
+
 		pos_t startingPosition = getStartingPosition_(fetchStartingArea_(timeout));
 
 		navigation_ = std::make_unique<Navigation>(
@@ -60,7 +62,14 @@ namespace dmce {
 
 	void NavigationServer::update_(ros::Duration timeStep) {
 		if (navigation_->hasGoal())
-			checkAbortConditions_(timeStep);
+    {
+      checkAbortConditions_(timeStep);
+      if (stopRequest_)
+      {
+        navigation_->resetPlan();
+        currentPlanAge_ = 0;
+      }
+    }
 
 		publishPlan_(navigation_->getCurrentPlan(), globalPlanPublisher_);
 		publishPlan_(navigation_->getCurrentPath(), pathPublisher_);
@@ -101,15 +110,10 @@ namespace dmce {
 
 	void NavigationServer::checkAbortConditions_(const ros::Duration& timeStep) {
 		currentPlanAge_ += timeStep.toSec();
-    bool stop = stopFlag_;
 		bool planTimedOut = currentPlanAge_ > maxPlanAge_;
 		bool goalUnreachable = consecutivePathfindingFailures_ > maxPathfindingFailures_;
 
-    if (stop) {
-      logInfo("update_", "Stop flag set. Resetting.");
-      stopFlag_ = false; // reset flag
-    }
-    else if (planTimedOut)
+    if (planTimedOut)
 			logWarn("update_", "Plan timed out after %.2fs. Resetting.", currentPlanAge_);
 		else if (goalUnreachable) {
 			logError("update_", "Stuck on unreachable goal! Resetting.");
@@ -119,7 +123,7 @@ namespace dmce {
 			failurePublisher_.publish(failureMsg);
 		}
 
-		if (stop || planTimedOut || goalUnreachable) {
+		if (planTimedOut || goalUnreachable) {
 			navigation_->resetPlan();
 			currentPlanAge_ = 0;
 		}
@@ -212,6 +216,7 @@ namespace dmce {
 		}
 
 		signalFailure_ = false;
+    stopRequest_ = false;
 	}
 
 	void NavigationServer::pathCallback_(
@@ -245,10 +250,14 @@ namespace dmce {
 			boost::bind(&NavigationServer::pathCallback_, this, _1));
 	}
 
-  bool NavigationServer::stopCallback_(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  bool NavigationServer::stopServiceCallback_(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
-    stopFlag_ = true;
+    stopRequest_ = true;
     return true;
   }
-}
 
+  void NavigationServer::stopCallback_(const std_msgs::EmptyConstPtr &msg)
+  {
+    stopRequest_ = true;
+  }
+}

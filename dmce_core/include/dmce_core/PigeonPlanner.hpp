@@ -5,15 +5,12 @@
 #include "dmce_msgs/RobotConnectivity.h"
 
 #include "std_srvs/Empty.h"
+#include "std_msgs/Empty.h"
 
 namespace dmce {
 
-	/**
-	 * This action planner simply returns a random point on the map.
-	 */
 	class PigeonPlanner : public Planner {
 	public:
-		//using Planner::Planner;
     PigeonPlanner(double robotDiameter)
       : Planner(robotDiameter)
     {
@@ -21,6 +18,7 @@ namespace dmce {
 
       ros::NodeHandle nh;
       connectivitySubscriber_ = nh.subscribe("/groundStation/RobotConnectivity", 5, &PigeonPlanner::connectivityCallback_, this);
+      stopPublisher_ = nh.advertise<std_msgs::Empty>("stop", 1);
       stopClient_ = nh.serviceClient<std_srvs::Empty>("stop");
 
       if (!stopClient_.waitForExistence(ros::Duration(5)))
@@ -33,7 +31,6 @@ namespace dmce {
       Eigen::Vector2d target(8, 5);
 			plan.push_back(posToPose(target));
 			latestPlan_ = plan;
-      switch_ = false;
     }
 
 	protected:
@@ -48,7 +45,8 @@ namespace dmce {
     void updatePlan_() override
     {
       static unsigned int robotIdToFind = 0;
-      static bool serviceFailed = false;
+      static bool stopRequested = false;
+      static ros::Time time;
 
       switch (state_)
       {
@@ -71,6 +69,7 @@ namespace dmce {
             plan_t plan;
             for (pose_t pose : plans_[robotIdToFind].poses)
             {
+              std::cout << pose << std::endl;
               plan.push_back(pose);
             }
             latestPlan_ = plan;
@@ -78,35 +77,27 @@ namespace dmce {
           }
           break;
         case State::Moving:
-          // Check if connection restored
-          if (serviceFailed || connectivity_[robotIdToFind])
+          // Check if stop already requested
+          if (stopRequested)
           {
-            latestPlan_.clear();
-            std_srvs::Empty srv;
-            if (stopClient_.call(srv))
+            // Check if sufficient time waited
+            if (ros::Time::now() - time >= ros::Duration(1))
             {
-              serviceFailed = false;
+              stopRequested = false;
               state_ = State::Stationary;
             }
-            else
-            {
-              serviceFailed = true;
-            }
-            //state_ = State::Stationary;
+          }
+          // Check if connection restored
+          else if (connectivity_[robotIdToFind])
+          {
+            latestPlan_.clear(); // remove all points
+            stopPublisher_.publish(std_msgs::Empty());
+            stopRequested = true;
+            time = ros::Time::now(); // set time
           }
           break;
       }
-      std::cout << state_ << std::endl;
-      /*
-			auto map = getMap();
-			Eigen::Vector2d mapSize = map.getLength();
-			Eigen::Vector2d mapPos = map.getPosition();
-			Eigen::Vector2d rand = Eigen::Vector2d::Random();
-			pos_t target = mapPos - 0.5*mapSize.cwiseProduct(rand);
-			plan_t plan;
-			plan.push_back(posToPose(target));
-			latestPlan_ = plan;
-      */
+      //std::cout << state_ << std::endl;
 		}
 
     void peerPlanCallback(const dmce_msgs::RobotPlan& msg)
@@ -115,18 +106,24 @@ namespace dmce {
       plans_[msg.robotId] = msg.path;
     }
 
+    void signalNavigationFailure()
+    {
+      navFailure_ = true;
+    }
+
   private:
     enum State {Stationary, Moving};
 		
     plan_t latestPlan_;
     ros::Subscriber connectivitySubscriber_;
+    ros::Publisher stopPublisher_;
     ros::ServiceClient stopClient_;
     unsigned int nRobots_;
     bool connectivity_[5];
     ros::Time lastConnect_[5];
     nav_msgs::Path plans_[5];
-    bool switch_;
     State state_ = State::Stationary;
+    bool navFailure_ = false;
 
     void connectivityCallback_(const dmce_msgs::RobotConnectivity& msg)
     {
@@ -142,7 +139,6 @@ namespace dmce {
           connectivity_[i] = false;
         }
       }
-      //std::cout << lastConnect_[1] << lastConnect_[2] << std::endl;
     }
 	};
 }
