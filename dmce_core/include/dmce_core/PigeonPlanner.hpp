@@ -19,27 +19,25 @@ namespace dmce {
       ros::NodeHandle nh;
       connectivitySubscriber_ = nh.subscribe("/groundStation/RobotConnectivity", 5, &PigeonPlanner::connectivityCallback_, this);
       stopPublisher_ = nh.advertise<std_msgs::Empty>("stop", 1);
-      stopClient_ = nh.serviceClient<std_srvs::Empty>("stop");
 
-      if (!stopClient_.waitForExistence(ros::Duration(5)))
-      {
-        throw std::runtime_error(
-            "[PigeonPlanner] Stop service not found!");
-      }
-
-			plan_t plan;
+			/*
+      plan_t plan;
       Eigen::Vector2d target(8, 5);
 			plan.push_back(posToPose(target));
 			latestPlan_ = plan;
+      */
     }
 
 	protected:
 		std::pair<bool, plan_t> getLatestPlan_() override
     {
+      if (!navFailure_ && !latestPlan_.empty())
+      {
+        latestPlan_.erase(latestPlan_.begin()); // remove first element
+        navFailure_ = false;
+      }
 			auto plan = latestPlan_;
-			latestPlan_.clear();
 			return std::make_pair((plan.size() > 0), plan);
-			//return std::make_pair(false, plan_t{});
     }
 		
     void updatePlan_() override

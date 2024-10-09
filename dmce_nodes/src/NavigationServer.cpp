@@ -20,8 +20,6 @@ namespace dmce {
     inflatedTruthMap_ = fetchGroundTruthMap_(timeout);
 		inflatedTruthMap_.inflateObstacles(robotDiameter_ * .75);
 
-    stopServer_ = nodeHandle_.advertiseService("stop", &NavigationServer::stopServiceCallback_, this);
-
 		globalPlanClient_ = nodeHandle_.serviceClient<dmce_msgs::GetPlan>(
 			"GlobalPlannerService"
 		);
@@ -249,12 +247,6 @@ namespace dmce {
 			ActionClient_t::SimpleActiveCallback(),
 			boost::bind(&NavigationServer::pathCallback_, this, _1));
 	}
-
-  bool NavigationServer::stopServiceCallback_(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
-  {
-    stopRequest_ = true;
-    return true;
-  }
 
   void NavigationServer::stopCallback_(const std_msgs::EmptyConstPtr &msg)
   {

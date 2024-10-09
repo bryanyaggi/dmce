@@ -15,6 +15,7 @@
 
   <!-- Extra nodes for mobile pigeon -->
   <remap from="/groundStation/RobotPosition" to="/robot0/RobotPosition" />
+	<node pkg="dmce_nodes" type="nodeMain" name="SensorEmulatorServer" output="screen" args="$0 SensorEmulatorServer" />
 	<node pkg="dmce_nodes" type="nodeMain" name="NavigationServer" output="screen" args="0 NavigationServer" />
 	<node pkg="dmce_nodes" type="nodeMain" name="PathfindingServer" output="screen" args="0 PathfindingServer" />
 	<node pkg="dmce_nodes" type="nodeMain" name="PlannerServer" output="screen" args="0 PlannerServer" >

@@ -35,7 +35,6 @@ namespace dmce {
 		virtual void update_(ros::Duration timeStep) override;
 
 	private:
-    ros::ServiceServer stopServer_;
     ros::ServiceClient globalPlanClient_;
 		ros::Publisher positionPublisher_;
 		ros::Publisher pathPublisher_;
@@ -80,8 +79,6 @@ namespace dmce {
 
 		bool navigateToGoal_(const ros::Duration& timeStep);
 
-    bool stopServiceCallback_(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
-    
     void stopCallback_(const std_msgs::EmptyConstPtr &msg);
 	};
 }

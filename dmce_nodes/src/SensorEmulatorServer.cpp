@@ -17,6 +17,10 @@ namespace dmce {
 
 		double sensorRange;
 		getRequiredParam("/robot/sensorRange", sensorRange);
+    if (robotId == 0)
+    {
+      getRequiredParam("/pigeon/sensorRange", sensorRange);
+    }
 
 		int lidarRayCount;
 		getRequiredParam("/robot/lidarRayCount", lidarRayCount);
