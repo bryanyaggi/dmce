@@ -46,7 +46,7 @@ robot:
 
 pigeon:
   speed: 5    # [m/s]
-  sensorRange: 1
+  sensorRange: 2
 
 mcts:
   reuseBranches: $(arg reuseBranches) # [-] Whether to keep branches from previous search trees

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <deque>
+
 #include "Planner.hpp"
 #include "dmce_core/utils.hpp"
 #include "dmce_msgs/RobotConnectivity.h"
@@ -19,24 +21,17 @@ namespace dmce {
       ros::NodeHandle nh;
       connectivitySubscriber_ = nh.subscribe("/groundStation/RobotConnectivity", 5, &PigeonPlanner::connectivityCallback_, this);
       stopPublisher_ = nh.advertise<std_msgs::Empty>("stop", 1);
-
-			/*
-      plan_t plan;
-      Eigen::Vector2d target(8, 5);
-			plan.push_back(posToPose(target));
-			latestPlan_ = plan;
-      */
     }
 
 	protected:
 		std::pair<bool, plan_t> getLatestPlan_() override
     {
-      if (!navFailure_ && !latestPlan_.empty())
+      if (!latestPlan_.empty() && !navFailure_ && (pursuingState_ != PursuingState::Searching))
       {
-        latestPlan_.erase(latestPlan_.begin()); // remove first element
-        navFailure_ = false;
+        latestPlan_.pop_front();
       }
-			auto plan = latestPlan_;
+      navFailure_ = false;
+			plan_t plan = plan_t(latestPlan_.begin(), latestPlan_.end()); // convert to vector
 			return std::make_pair((plan.size() > 0), plan);
     }
 		
@@ -67,10 +62,9 @@ namespace dmce {
             plan_t plan;
             for (pose_t pose : plans_[robotIdToFind].poses)
             {
-              std::cout << pose << std::endl;
               plan.push_back(pose);
             }
-            latestPlan_ = plan;
+            latestPlan_ = pland_t(plan.begin(), plan.end());
             state_ = State::Moving;
           }
           break;
@@ -82,7 +76,9 @@ namespace dmce {
             if (ros::Time::now() - time >= ros::Duration(1))
             {
               stopRequested = false;
+              robotIdToFind = 0;
               state_ = State::Stationary;
+              pursuingState_ = PursuingState::Following;
             }
           }
           // Check if connection restored
@@ -93,14 +89,38 @@ namespace dmce {
             stopRequested = true;
             time = ros::Time::now(); // set time
           }
-          break;
+          // Run sub state machine
+          else
+          {
+            switch (pursuingState_)
+            {
+              case PursuingState::Following:
+                // Check if plan complete or navigation failure
+                if (latestPlan_.empty()) // || navFailure_
+                {
+                  //latestPlan_.clear();
+                  pursuingState_ = PursuingState::Searching;
+                }
+                break;
+              case PursuingState::Searching:
+                // Random
+                auto map = getMap();
+                Eigen::Vector2d mapSize = map.getLength();
+                Eigen::Vector2d mapPos = map.getPosition();
+                Eigen::Vector2d rand = Eigen::Vector2d::Random();
+                pos_t target = mapPos - 0.5 * mapSize.cwiseProduct(rand);
+                plan_t plan;
+                plan.push_back(posToPose(target));
+                latestPlan_ = pland_t(plan.begin(), plan.end());
+                break;
+            }
+          }
       }
-      //std::cout << state_ << std::endl;
+      //std::cout << state_  << " " << pursuingState_ << " " << latestPlan_.size() << std::endl;
 		}
 
     void peerPlanCallback(const dmce_msgs::RobotPlan& msg)
     {
-      //size_t i = msg.robotId;
       plans_[msg.robotId] = msg.path;
     }
 
@@ -111,8 +131,12 @@ namespace dmce {
 
   private:
     enum State {Stationary, Moving};
+    enum PursuingState {Following, Searching};
 		
-    plan_t latestPlan_;
+    using pland_t = std::deque<pose_t>;
+
+    //plan_t latestPlan_;
+    pland_t latestPlan_;
     ros::Subscriber connectivitySubscriber_;
     ros::Publisher stopPublisher_;
     ros::ServiceClient stopClient_;
@@ -121,6 +145,7 @@ namespace dmce {
     ros::Time lastConnect_[5];
     nav_msgs::Path plans_[5];
     State state_ = State::Stationary;
+    PursuingState pursuingState_ = PursuingState::Following;
     bool navFailure_ = false;
 
     void connectivityCallback_(const dmce_msgs::RobotConnectivity& msg)
