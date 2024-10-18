@@ -26,11 +26,16 @@ namespace dmce {
 	protected:
 		std::pair<bool, plan_t> getLatestPlan_() override
     {
-      if (!latestPlan_.empty() && !navFailure_ && (pursuingState_ != PursuingState::Searching))
+      // remove next goal (achieved or nav failure)
+      if (!latestPlan_.empty() && (pursuingState_ != PursuingState::Searching))
       {
         latestPlan_.pop_front();
       }
-      navFailure_ = false;
+      // clear nav failure
+      if (navFailure_)
+      {
+        navFailure_ = false;
+      }
 			plan_t plan = plan_t(latestPlan_.begin(), latestPlan_.end()); // convert to vector
 			return std::make_pair((plan.size() > 0), plan);
     }
@@ -40,14 +45,15 @@ namespace dmce {
       static unsigned int robotIdToFind = 0;
       static bool stopRequested = false;
       static ros::Time time;
+      static ros::Time lastConnect;
 
       switch (state_)
       {
         case State::Stationary:
           // Check if connection lost
+          lastConnect = ros::Time::now();
           for (unsigned int i = 1; i <= nRobots_; i++)
           {
-            ros::Time lastConnect = ros::Time::now();
             if (!connectivity_[i])
             {
               if (lastConnect_[i] <= lastConnect)
@@ -65,6 +71,7 @@ namespace dmce {
               plan.push_back(pose);
             }
             latestPlan_ = pland_t(plan.begin(), plan.end());
+            std::cout << nRobots_ << " " << robotIdToFind << std::endl;
             state_ = State::Moving;
           }
           break;
@@ -96,13 +103,13 @@ namespace dmce {
             {
               case PursuingState::Following:
                 // Check if plan complete or navigation failure
-                if (latestPlan_.empty()) // || navFailure_
+                if (latestPlan_.empty())
                 {
-                  //latestPlan_.clear();
                   pursuingState_ = PursuingState::Searching;
                 }
                 break;
               case PursuingState::Searching:
+                //std::cout << "Searching" << std::endl;
                 // Random
                 auto map = getMap();
                 Eigen::Vector2d mapSize = map.getLength();
@@ -147,6 +154,7 @@ namespace dmce {
     State state_ = State::Stationary;
     PursuingState pursuingState_ = PursuingState::Following;
     bool navFailure_ = false;
+    int failCounter_ = 0;
 
     void connectivityCallback_(const dmce_msgs::RobotConnectivity& msg)
     {

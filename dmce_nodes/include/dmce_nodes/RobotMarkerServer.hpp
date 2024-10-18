@@ -22,7 +22,7 @@ namespace dmce {
 		RobotConnectivity connectivityHandler_;
 		ros::Publisher markerPublisher_;
 		double robotDiameter_;
-		std::vector<Eigen::Vector3d> robotColors_ = {{1., .0, .0}, {.0, 1., .0}, {.0, 1.0, 1.}, {.0, .0, 1.}};
+		std::vector<Eigen::Vector3d> robotColors_ = {{1., .0, .0}, {.0, 1., .0}, {.0, .0, 1.}, {.0, 1., 1.}, {1., .0, 1.}};
 
 		/**
 		 * Called when a position update is received from one of the robots.
