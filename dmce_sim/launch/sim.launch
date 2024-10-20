@@ -17,6 +17,7 @@
 	<arg name="timeDiscountFactor" default="0.9" />
 	<arg name="reuseBranches" default="true" />
 	<arg name="useLocalReward" default="true" />
+  <arg name="pigeonDocked" default="false" />
 
 	<rosparam file="$(find dmce_sim)/config/sim.yaml" command="load" subst_value="true" />
 	<rosparam file="$(find dmce_sim)/config/scenarios/$(arg scenario).yaml" command="load" subst_value="true" />
@@ -26,6 +27,7 @@
 	
 	<include ns="groundStation" file="$(find dmce_sim)/launch/groundStation.launch">
 		<arg name="plannerType" value="$(arg plannerType)" />
+    <arg name="docked" value="$(arg pigeonDocked)" />
 	</include>
 
 	<node pkg="dmce_nodes" type="clock" name="ClockServer" output="screen" args="" />

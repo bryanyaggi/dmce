@@ -18,6 +18,11 @@ namespace dmce {
 			latestPlan_.clear();
 			return std::make_pair((plan.size() > 0), plan);
 		}
+	
+    std::pair<bool, plan_t> getPlanToShare_() override {
+			auto plan = latestPlan_;
+			return std::make_pair((plan.size() > 0), plan);
+    }
 
 		void updatePlan_() override {
 			auto map = getMap();

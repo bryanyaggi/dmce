@@ -1,5 +1,6 @@
 <launch>
 	<arg name="plannerType" default="mcts" />
+  <arg name="docked" default="false" />
 
 	<node pkg="dmce_nodes" type="nodeMain" name="GroundTruthMapServer" output="screen" args="0 GroundTruthMapServer" />
 
@@ -14,19 +15,19 @@
 	</node>
 
   <!-- Extra nodes for mobile pigeon -->
-  <remap from="/groundStation/RobotPosition" to="/robot0/RobotPosition" />
-	<node pkg="dmce_nodes" type="nodeMain" name="SensorEmulatorServer" output="screen" args="$0 SensorEmulatorServer" />
-	<node pkg="dmce_nodes" type="nodeMain" name="NavigationServer" output="screen" args="0 NavigationServer" />
-	<node pkg="dmce_nodes" type="nodeMain" name="PathfindingServer" output="screen" args="0 PathfindingServer" />
-	<node pkg="dmce_nodes" type="nodeMain" name="PlannerServer" output="screen" args="0 PlannerServer" >
-    <param name="plannerType" type="string" value="pigeon" />
-  </node>
-	<node pkg="dmce_nodes" type="nodeMain" name="TransformServer" output="screen" args="0 TransformServer" />
+  <group unless="$(arg docked)">
+    <remap from="/groundStation/RobotPosition" to="/robot0/RobotPosition" />
+    <node pkg="dmce_nodes" type="nodeMain" name="SensorEmulatorServer" output="screen" args="$0 SensorEmulatorServer" />
+    <node pkg="dmce_nodes" type="nodeMain" name="NavigationServer" output="screen" args="0 NavigationServer" />
+    <node pkg="dmce_nodes" type="nodeMain" name="PathfindingServer" output="screen" args="0 PathfindingServer" />
+    <node pkg="dmce_nodes" type="nodeMain" name="PlannerServer" output="screen" args="0 PlannerServer" >
+      <param name="plannerType" type="string" value="pigeon" />
+    </node>
+    <node pkg="dmce_nodes" type="nodeMain" name="TransformServer" output="screen" args="0 TransformServer" />
+  </group>
 
   <!-- Docked pigeon node -->
-  <!--
-  <node pkg="dmce_nodes" type="dockedPigeon" name="pigeon" output="screen" />
-  -->
+  <node pkg="dmce_nodes" type="dockedPigeon" name="pigeon" output="screen" if="$(arg docked)"/>
 
 	<node pkg="grid_map_visualization" type="grid_map_visualization" name="MapViz" output="screen">
 		<rosparam>

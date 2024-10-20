@@ -27,9 +27,21 @@ namespace dmce {
 		std::pair<bool, plan_t> getLatestPlan_() override
     {
       // remove next goal (achieved or nav failure)
-      if (!latestPlan_.empty() && (pursuingState_ != PursuingState::Searching))
+      if (!latestPlan_.empty())
       {
-        latestPlan_.pop_front();
+        if (navFailure_)
+        {
+          latestPlan_.pop_front();
+        }
+        else
+        {
+          pos_t currentPos = getPosition();
+          double dist = (currentPos - poseToPos(latestPlan_[0])).norm();
+          if (dist <= goalThreshold_)
+          {
+            latestPlan_.pop_front();
+          }
+        }
       }
       // clear nav failure
       if (navFailure_)
@@ -71,7 +83,7 @@ namespace dmce {
               plan.push_back(pose);
             }
             latestPlan_ = pland_t(plan.begin(), plan.end());
-            std::cout << nRobots_ << " " << robotIdToFind << std::endl;
+            std::cout << latestPlan_.size() << std::endl;
             state_ = State::Moving;
           }
           break;
@@ -129,6 +141,7 @@ namespace dmce {
     void peerPlanCallback(const dmce_msgs::RobotPlan& msg)
     {
       plans_[msg.robotId] = msg.path;
+      //std::cout << msg.robotId << " " << msg.path << std::endl;
     }
 
     void signalNavigationFailure()
@@ -154,7 +167,7 @@ namespace dmce {
     State state_ = State::Stationary;
     PursuingState pursuingState_ = PursuingState::Following;
     bool navFailure_ = false;
-    int failCounter_ = 0;
+    double goalThreshold_ = 1.0;
 
     void connectivityCallback_(const dmce_msgs::RobotConnectivity& msg)
     {
