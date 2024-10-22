@@ -33,7 +33,7 @@ namespace dmce {
         {
           latestPlan_.pop_front();
         }
-        else
+        else if (pursuingState_ != PursuingState::Searching)
         {
           pos_t currentPos = getPosition();
           double dist = (currentPos - poseToPos(latestPlan_[0])).norm();
@@ -83,7 +83,6 @@ namespace dmce {
               plan.push_back(pose);
             }
             latestPlan_ = pland_t(plan.begin(), plan.end());
-            std::cout << latestPlan_.size() << std::endl;
             state_ = State::Moving;
           }
           break;
@@ -121,22 +120,55 @@ namespace dmce {
                 }
                 break;
               case PursuingState::Searching:
-                //std::cout << "Searching" << std::endl;
-                // Random
-                auto map = getMap();
-                Eigen::Vector2d mapSize = map.getLength();
-                Eigen::Vector2d mapPos = map.getPosition();
-                Eigen::Vector2d rand = Eigen::Vector2d::Random();
-                pos_t target = mapPos - 0.5 * mapSize.cwiseProduct(rand);
-                plan_t plan;
-                plan.push_back(posToPose(target));
-                latestPlan_ = pland_t(plan.begin(), plan.end());
+                std::cout << "Searching" << std::endl;
+                //getRandomPlan();
+                getClosestFrontierPlan();
                 break;
             }
           }
       }
       //std::cout << state_  << " " << pursuingState_ << " " << latestPlan_.size() << std::endl;
 		}
+
+    void getClosestFrontierPlan()
+    {
+			auto map = getMap();
+			auto frontier = map.getFrontier();
+			pos_t robotPos = getPosition();
+			plan_t plan;
+
+			if (frontier.size() > 0)
+      {
+				pos_t candidatePos, closestFrontier;
+				map.getPosition(frontier[0], closestFrontier);
+				double minDist = (closestFrontier - robotPos).squaredNorm();
+				for (unsigned i = 1; i < frontier.size(); i++)
+        {
+					map.getPosition(frontier[i], candidatePos);
+					double dist = (candidatePos - robotPos).squaredNorm();
+					if (dist < minDist)
+          {
+						minDist = dist;
+						closestFrontier = candidatePos;
+					}
+				}
+				plan.push_back(posToPose(closestFrontier));
+			}
+
+			latestPlan_ = pland_t(plan.begin(), plan.end());
+    }
+
+    void getRandomPlan()
+    {
+      auto map = getMap();
+      Eigen::Vector2d mapSize = map.getLength();
+      Eigen::Vector2d mapPos = map.getPosition();
+      Eigen::Vector2d rand = Eigen::Vector2d::Random();
+      pos_t target = mapPos - 0.5 * mapSize.cwiseProduct(rand);
+      plan_t plan;
+      plan.push_back(posToPose(target));
+      latestPlan_ = pland_t(plan.begin(), plan.end());
+    }
 
     void peerPlanCallback(const dmce_msgs::RobotPlan& msg)
     {
