@@ -28,6 +28,7 @@ namespace dmce {
 		getRequiredParam("/sim_time/scale_with_robots", scale_with_robots_);
 		getRequiredParam("/globalMap/scenarioName", scenarioName_);
 		getRequiredParam("/robot/restrictComms", restrictComms_);
+    getRequiredParam("~pigeonDocked", pigeonDocked_);
 
 		if (!use_time_time_)
 			time_multiplier_ = 1.0;
@@ -96,6 +97,7 @@ namespace dmce {
 		ss << "Connectivity:," << (restrictComms_ ? "LoS only" : "global") << std::endl;
 		ss << "Planner type:," << plannerType_ << std::endl;
 		ss << "Robot count:," << getRobotCount() << std::endl;
+    ss << "Pigeon:," << (pigeonDocked_ ? "disabled" : "enabled") << std::endl;
 		ss << "Branch reuse:," << (reuseBranches_ ? "enabled" : "disabled") << std::endl;
 		ss << "Local reward:," << (useLocalReward_ ? "enabled" : "disabled") << std::endl;
 		ss << "Min. tree age:," << minRollouts_ << std::endl;

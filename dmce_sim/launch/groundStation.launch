@@ -12,6 +12,7 @@
 
 	<node pkg="dmce_nodes" type="nodeMain" name="LoggingServer" output="screen" args="0 LoggingServer">
 		<param name="plannerType" type="string" value="$(arg plannerType)" />
+    <param name="pigeonDocked" type="bool" value="$(arg docked)" />
 	</node>
 
   <!-- Extra nodes for mobile pigeon -->

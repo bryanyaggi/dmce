@@ -36,6 +36,7 @@ namespace dmce {
 		bool reuseBranches_;
 		bool useLocalReward_;
 		unsigned int navigationFailureCount_ = 0;
+    bool pigeonDocked_;
 
 		std::mutex dataMutex_;
 
