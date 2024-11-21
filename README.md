@@ -1,3 +1,12 @@
+# MEEN 696: Carrier Pigeon UAV  
+
+The project is implemented from a fork of the DMCE project described below. The pigeon is compatible with the frontier and dmcts planners or any planner for which the robots share plans. The pigeon is only useful if communication is restricted (`restrictComms:=true`).  
+
+An additional launch parameter is included:  
+`pigeonDocked`: pigeon is enabled if false and disabled if true. Default is **false**.    
+
+Example launch command: `roslaunch dmce_sim demo.launch restrictComms:=true plannerType:=frontier nRobots:=2`  
+
 # DMCE: Decentralised Monte Carlo Exploration
 
 This project is an implementation of the multi-robot planning strategy proposed in **"Decentralised Multi-Robot Exploration using Monte Carlo Tree Search"**, published at the IROS 2023 conference. It is implemented in C++ with the framework provided by ROS Noetic. See the [demo video](https://youtu.be/3RfDq8wlnPI).
